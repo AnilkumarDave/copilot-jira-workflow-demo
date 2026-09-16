@@ -1,0 +1,27 @@
+package com.anilkumar.demo.user;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Map;
+
+@RestControllerAdvice
+class UserValidationErrorHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map<String, Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+        return Map.of(
+                "message", "Validation failed",
+                "errors", exception.getBindingResult().getFieldErrors().stream()
+                        .map(fieldError -> Map.of(
+                                "field", fieldError.getField(),
+                                "message", fieldError.getDefaultMessage()
+                        ))
+                        .toList()
+        );
+    }
+}
