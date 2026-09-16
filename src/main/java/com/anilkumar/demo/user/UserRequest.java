@@ -1,9 +1,13 @@
 package com.anilkumar.demo.user;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class UserRequest {
 
     private String name;
     private String email;
+
+    @NotBlank
     private String password;
 
     public String getName() {
