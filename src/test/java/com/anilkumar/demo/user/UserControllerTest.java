@@ -7,6 +7,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -50,6 +51,7 @@ class UserControllerTest {
         mockMvc.perform(post("/users")
                         .contentType("application/json")
                         .content(requestBody))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(content().string("User created successfully"));
     }
 }
