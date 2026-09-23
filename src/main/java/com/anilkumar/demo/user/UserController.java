@@ -15,7 +15,7 @@ public class UserController {
 
     @GetMapping("/")
     public String home() {
-        return "Copilot Jira CI/CD Docker Application is running successfully!";
+        return "Copilot Jira CI/CD Docker Application Version 2 is running successfully!";
     }
 
     @PostMapping
