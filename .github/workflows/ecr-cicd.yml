@@ -54,3 +54,29 @@ jobs:
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Deploy latest image to EC2 using SSM
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "i-017359d0cc78c39c7" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy GitHub commit ${{ github.sha }}" \
+            --parameters 'commands=[
+              "aws ecr get-login-password --region eu-north-1 | sudo docker login --username AWS --password-stdin 074494041026.dkr.ecr.eu-north-1.amazonaws.com",
+              "sudo docker pull 074494041026.dkr.ecr.eu-north-1.amazonaws.com/copilot-jira-demo:latest",
+              "sudo docker stop copilot-jira-demo || true",
+              "sudo docker rm copilot-jira-demo || true",
+              "sudo docker run -d --name copilot-jira-demo --restart unless-stopped -p 8080:8080 074494041026.dkr.ecr.eu-north-1.amazonaws.com/copilot-jira-demo:latest"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM Command ID: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "i-017359d0cc78c39c7"
+
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "i-017359d0cc78c39c7"
