@@ -15,7 +15,7 @@ public class UserController {
 
     @GetMapping("/")
     public String home() {
-        return "Hello from CI/CD version 3!";
+        return "Hello from CI/CD version 4 - deployed automatically to Amazon EKS!";
     }
 
     @PostMapping
