@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: copilot-jira-demo
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: copilot-jira-demo
+
+  template:
+    metadata:
+      labels:
+        app: copilot-jira-demo
+
+    spec:
+      containers:
+        - name: copilot-jira-demo
+          image: 074494041026.dkr.ecr.eu-north-1.amazonaws.com/copilot-jira-demo:latest
+          ports:
+            - containerPort: 8080

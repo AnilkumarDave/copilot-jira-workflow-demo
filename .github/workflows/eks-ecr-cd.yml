@@ -1,0 +1,65 @@
+name: Deploy ECR Image to EKS
+
+on:
+  workflow_run:
+    workflows: ["AWS ECR CI/CD Pipeline"]
+    types:
+      - completed
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-to-eks:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::074494041026:role/GitHubActionsECRRole
+          aws-region: eu-north-1
+
+      - name: Configure kubectl for Amazon EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region eu-north-1 \
+            --name copilot-jira-demo-eks
+
+      - name: Verify EKS cluster connection
+        run: |
+          kubectl get nodes
+
+      - name: Deploy image to EKS
+        env:
+          ECR_IMAGE: 074494041026.dkr.ecr.eu-north-1.amazonaws.com/copilot-jira-demo
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
+          else
+            IMAGE_TAG="latest"
+          fi
+
+          echo "Deploying image: $ECR_IMAGE:$IMAGE_TAG"
+
+          kubectl set image deployment/copilot-jira-demo \
+            copilot-jira-demo=$ECR_IMAGE:$IMAGE_TAG
+
+      - name: Wait for deployment rollout
+        run: |
+          kubectl rollout status deployment/copilot-jira-demo --timeout=180s
+
+      - name: Verify EKS deployment
+        run: |
+          kubectl get deployment copilot-jira-demo
+          kubectl get pods -o wide
+          kubectl get service copilot-jira-demo-service
