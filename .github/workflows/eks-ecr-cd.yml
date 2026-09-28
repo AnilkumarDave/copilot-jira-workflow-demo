@@ -37,7 +37,7 @@ jobs:
 
       - name: Verify EKS cluster connection
         run: |
-          kubectl get nodes
+          kubectl get deployment copilot-jira-demo
 
       - name: Deploy image to EKS
         env:
